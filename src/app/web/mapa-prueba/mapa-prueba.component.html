@@ -1,0 +1,143 @@
+<div class="flex flex-col h-screen w-screen overflow-hidden">
+  <app-header></app-header>
+
+  <!-- Main Content -->
+  <div class="flex flex-grow flex-col md:flex-row gap-4 md:gap-8 p-4 md:p-6">
+
+    <!-- Sidebar with Cards -->
+    <div class="bg-[#1B2A41] text-white w-full md:w-20 p-4 flex flex-row md:flex-col rounded-lg shadow-lg">
+      <div class="flex flex-row md:flex-col w-full justify-around md:justify-start space-x-2 md:space-x-0 md:space-y-4">
+        @for (item of items; track $index) {
+          <div class="p-4 rounded-lg shadow-md bg-gray-700 cursor-pointer" pTooltip="{{ item.label }}"
+            tooltipPosition="right" (click)="evento(item)">
+            <i class="pi {{ item.icon }}"></i>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Details Section with Scroll -->
+    <p-scrollpanel class="w-full md:w-96 h-[20vh] md:h-[88vh] overflow-y-auto bg-white rounded-lg shadow-lg">
+      <div class="p-2 md:p-4 rounded-lg">
+        <div class="p-4 md:p-6">
+          <div *ngIf="sw == 'pi-map'">
+            <p-dataview [value]="namedGeoJSONLayers">
+                <ng-template #list let-items>
+                  @for (item of items; track $index) {
+                    <div class="col-span-12" class="col-span-12">
+                      <div class="flex flex-col sm:flex-row sm:items-center p-6 gap-4">
+                        <!-- Content Section -->
+                        <div class="flex flex-col md:flex-row justify-between md:items-center flex-1 gap-6">
+                          <div class="flex flex-row md:flex-col justify-between items-start gap-2">
+                            <div>
+                              <div class="text-lg font-medium text-surface-900 dark:text-surface-0 mt-2">{{ item.titulo }}</div>
+                            </div>
+                          </div>
+                          <div class="flex flex-col md:items-end gap-8">
+                            <div class="flex flex-row-reverse md:flex-row gap-2">
+                              <p-button icon="pi pi-trash" severity="danger" (click)="eliminarCapa(item.nombre)" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <p-slider [min]="0" [max]="0.7" [step]="0.01" (onChange)="cambiarOpacidad(item.name, $event)"></p-slider>
+
+                    </div>
+                  }
+                </ng-template>
+            </p-dataview>
+          </div>
+
+          <div *ngIf="sw !== 'pi-map'">
+            <p-accordion>
+              <!-- Primer nivel: "Vivienda", "CNA 2013", etc. -->
+              <p-accordion-panel *ngFor="let item of indice" [value]="item.tema">
+                <p-accordion-header>
+                  <div class="text-icon-container">
+                    <span class="text">{{ item.tema }}</span>
+                    <i class="icono" [class]="item.icono ? item.icono : ''"></i>
+                  </div>
+                </p-accordion-header>
+
+                <p-accordion-content>
+                  <!-- Segundo nivel: Secciones (Acceso a bienes, Condiciones habitacionales) -->
+                  <ng-container *ngIf="item.datos && item.datos.length > 0; else loggedOut1">
+                    <p-accordion *ngIf="item.datos.length">
+                      <p-accordion-panel *ngFor="let item1 of item.datos" [value]="item1.seccion || 'Sin Sección'">
+                        <p-accordion-header>
+                          <div class="text-icon-container">
+                            <span class="text">{{ item1.seccion || item1.titulo || 'Sin Título' }}</span>
+                          </div>
+                        </p-accordion-header>
+                        <p-accordion-content>
+                          <!-- Tercer nivel: subsecciones (si existen) -->
+                          <ng-container *ngIf="item1.datos?.length > 0; else noSubsections">
+                            <p-accordion *ngIf="item1.datos.length">
+                              <p-accordion-panel *ngFor="let item2 of item1.datos" [value]="item2.subseccion || item2.titulo">
+                                <p-accordion-header>
+                                  <div class="text-icon-container">
+                                    <span class="text">{{ item2.subseccion || item2.titulo }}</span>
+                                    <i class="icono" [class]="item2.icono || ''"></i>
+                                  </div>
+                                </p-accordion-header>
+                                <p-accordion-content>
+                                  <!-- Cuarto nivel: datos dentro de las subsecciones -->
+                                  <ng-container *ngIf="item2.datos?.length > 0; else showButton">
+                                    <div *ngFor="let item3 of item2.datos">
+                                      <p-panel [toggleable]="true" [collapsed]="true">
+                                        <ng-template pTemplate="header">
+                                          {{ item3.titulo }}
+                                        </ng-template>
+                                        <div class="boton-container">
+                                          <p-button type="button" label="{{ botonMapa }}" (click)="opcion(item3)" severity="contrast" ></p-button>
+                                        </div>
+                                      </p-panel>
+                                    </div>
+                                  </ng-container>
+                                  <ng-template #showButton>
+                                    <div class="boton-container">
+                                      <p-button type="button" label="{{ botonMapa }}" (click)="opcion(item2)" severity="contrast"></p-button>
+                                    </div>
+                                  </ng-template>
+                                </p-accordion-content>
+                              </p-accordion-panel>
+                            </p-accordion>
+                          </ng-container>
+                          <ng-template #noSubsections>
+                            <!-- Mostrar el botón si no hay subsecciones -->
+                            <div class="boton-container">
+                              <p-button type="button" label="{{ botonMapa }}" (click)="opcion(item1)" severity="contrast" ></p-button>
+                            </div>
+                          </ng-template>
+                        </p-accordion-content>
+                      </p-accordion-panel>
+                    </p-accordion>
+                  </ng-container>
+
+                  <!-- Si no hay datos en el segundo nivel, mostramos las tarjetas -->
+                  <ng-template #loggedOut1>
+                    <div *ngFor="let item1 of item.datos">
+                      <p-card (click)="opcion(item1)">
+                        <p class="m-0">{{ item1.titulo || 'Sin Título' }}</p>
+                        <div class="boton-container">
+                          <p-button type="button" label="Agregar Capa" (click)="opcion(item1)" severity="contrast" ></p-button>
+                        </div>
+                      </p-card>
+                    </div>
+                  </ng-template>
+                </p-accordion-content>
+              </p-accordion-panel>
+            </p-accordion>
+          </div>
+
+        </div>
+      </div>
+    </p-scrollpanel>
+
+    <!-- Map Container -->
+    <div class="flex-grow relative h-[50vh] md:h-full rounded-lg shadow-lg overflow-hidden">
+      <div id="map" class="w-full h-full bg-gray-200 rounded-lg"></div>
+    </div>
+
+  </div>
+</div>
