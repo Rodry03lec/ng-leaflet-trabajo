@@ -1,41 +1,108 @@
 <div class="relative w-full h-screen flex flex-col overflow-hidden">
-  <!-- Background Map -->
-  <div #mapContainer class="absolute inset-0 z-0 leaflet-container"></div>
+  <!-- Contenedor del Mapa -->
+  <div #mapContainer class="relative h-full z-0 leaflet-container transition-all duration-300"
+  [ngStyle]="{'width': panelVisible1 ? 'calc(100% - 24rem)' : '100%'}">
+  </div>
 
+  <!-- Logo Flotante con Efectos Avanzados (Optimizado para móviles) -->
+  <div class="fixed top-4 left-4 sm:top-12 sm:left-20 z-50 group">
+    <!-- Halo de luz alrededor del logo (optimizado) -->
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-md sm:blur-lg opacity-0 group-hover:opacity-70 transition-all duration-700 scale-0 group-hover:scale-150 -z-10"></div>
 
-
-  <!-- Navigation Bar -->
-  <header class="absolute top-0 left-0 right-0 z-10 p-4">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-      <!-- Logo -->
-      <div class="transition-transform duration-300 hover:scale-110">
-        <img src="logos/image2vector.svg" alt="Logo" class="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 bg-white/80 rounded-full p-2 shadow-lg backdrop-blur-sm transition-transform duration-500"/>
-      </div>
-
-      <!-- Desktop Menu -->
-      <nav class="hidden md:flex space-x-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-2">
-        <button *ngFor="let btn of ['Video', 'Mapas', 'Presentación']"
-          class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-lg transition">
-          {{ btn }}
-        </button>
-      </nav>
-
-      <!-- Mobile Menu Button -->
-      <button class="md:hidden bg-white/80 p-2 rounded-full shadow-lg">
-        <i class="pi pi-bars"></i>
-      </button>
+    <!-- Partículas flotantes (reducidas en móviles) -->
+    <div class="absolute -inset-2 sm:-inset-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+      <div class="absolute top-0 left-1/4 w-1 h-1 sm:w-2 sm:h-2 bg-yellow-300 rounded-full animate-ping"></div>
+      <div class="absolute bottom-1/4 right-0 w-0.5 h-0.5 sm:w-1 sm:h-1 bg-blue-400 rounded-full animate-bounce"></div>
+      <div class="absolute bottom-0 left-1/3 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-pink-400 rounded-full animate-pulse"></div>
+      <div class="absolute top-1/4 right-1/4 w-0.5 h-0.5 sm:w-1 sm:h-1 bg-green-300 rounded-full animate-ping"></div>
     </div>
-  </header>
+
+    <!-- Logo principal con tamaños responsive -->
+    <div class="relative">
+      <img
+        src="logos/image2vector.svg"
+        alt="Logo INE"
+        class="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24 lg:w-32 lg:h-32
+              bg-white/95 rounded-full p-2 sm:p-3
+              shadow-lg
+              backdrop-blur-lg
+              transition-all duration-700 ease-in-out
+              hover:shadow-xl
+              hover:ring-2 sm:hover:ring-4 hover:ring-blue-400/50
+              group-hover:scale-110
+              group-hover:rotate-[360deg]
+              group-hover:brightness-110
+              dark:bg-gray-900/90 dark:border dark:border-gray-700"
+      />
+
+      <!-- Indicador de estado (más pequeño en móviles) -->
+      <div class="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse shadow-lg shadow-green-500/50"></div>
+    </div>
+
+    <!-- Texto emergente (ajustado) -->
+    <div class="absolute -bottom-8 sm:-bottom-10 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:-translate-y-2">
+      INE
+    </div>
+  </div>
+
+  <!-- Menú Flotante (visible en pantallas grandes, oculto en móviles) -->
+  <nav class="fixed  top-20 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 flex space-x-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-2 md:block hidden">
+    <button *ngFor="let btn of ['Video', 'Mapas', 'Presentación']"
+      class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-lg transition">
+      {{ btn }}
+    </button>
+  </nav>
+
+
+
+
+  <!-- Panel lateral (fuera del mapa para evitar ocultarlo) -->
+  <div class="absolute right-0 top-0 h-full bg-white shadow-lg w-96 p-4 transition-transform duration-300
+  sm:w-96 md:w-96 lg:w-96 xl:w-96"
+  [ngClass]="panelVisible1 ? 'translate-x-0' : 'translate-x-full'" style="z-index: 10;">
+
+    <!-- Título del Panel -->
+    <h2 class="text-lg font-bold mb-4">Opciones</h2>
+
+    <!-- Contenido del Panel -->
+    <div>
+    Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora quas pariatur corporis. Iure eius odit
+    temporibus unde hic necessitatibus obcaecati odio a aperiam quasi quisquam, aliquid sapiente distinctio
+    tempore enim?
+    </div>
+
+    <!-- Botón de alternar el panel (dentro del panel) -->
+    <button (click)="panelVisible1 = !panelVisible1"
+      class="absolute top-0 left-[-55px] w-16 h-16 flex items-center justify-center text-white shadow-xl
+      transition-all duration-300 ease-in-out"
+      [ngClass]="panelVisible1 ? 'bg-red-500' : 'bg-[#1B2A41]'">
+      <i class="pi text-2xl" [ngClass]="panelVisible1 ? 'pi-times' : 'pi-bars'"></i>
+    </button>
+  </div>
+
+
+
 
   <!-- Toggle Panel Button -->
   <button (click)="alternarPanel()"
-    class="absolute bottom-4 left-4 z-20 w-12 h-12 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition-transform"
-    [class.rotate-45]="panelVisible">
-    <i class="pi pi-times"></i>
+    class="fixed bottom-6 left-6 z-50 w-16 h-16 flex items-center justify-center text-white rounded-full shadow-xl transition-all duration-300 ease-in-out overflow-hidden group"
+    [ngClass]="{
+      'bg-red-500': panelVisible,
+      'bg-[#1B2A41]  from-blue-500 to-indigo-700': !panelVisible
+    }">
+
+    <!-- Icono con transición suave -->
+    <i class="pi text-2xl transition-transform duration-300 relative z-10" [ngClass]="{
+      'pi-times transform rotate-90': panelVisible,
+      'pi-bars': !panelVisible
+    }"></i>
+
+    <!-- Overlay de efecto al hacer hover -->
+    <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
   </button>
 
   <!-- Bottom Panel -->
-  <section *ngIf="panelVisible" class="absolute bottom-20 left-4 z-20 flex flex-col md:flex-row bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl transition duration-500">
+  <section *ngIf="panelVisible" class="absolute bottom-32 left-4 z-10 flex flex-col md:flex-row backdrop-blur-sm rounded-xl shadow-2xl transition duration-500">
     <!-- Sidebar -->
     <aside class="bg-[#1B2A41] text-center text-white w-full md:w-20 flex flex-row md:flex-col p-2 space-x-2 md:space-x-0 md:space-y-4">
       @for (item of items; track $index) {
@@ -194,4 +261,5 @@
       </main>
     </p-scrollpanel>
   </section>
+
 </div>

@@ -23,18 +23,14 @@ import 'leaflet-draw';
 import { MapaService } from '../servicios/mapa.service';
 import { environment } from '../../../environments/environment';
 
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+
 // Interfaces for type safety
 interface MenuItem {
   label: string;
   icon: string;
   sw: number;
   description: string;
-}
-
-interface ActionButton {
-  label: string;
-  icon: string;
-  type: string;
 }
 
 interface AdditionalDetail {
@@ -82,6 +78,8 @@ export class CapaComponent implements OnInit, OnDestroy {
 
   //aqui es donde se almacena las capas
   namedGeoJSONLayers: any[] = [];
+
+  panelVisible1: any = false;
 
   // Menu items with detailed descriptions
   items: MenuItem[] = [
