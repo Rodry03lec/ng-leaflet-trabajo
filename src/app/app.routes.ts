@@ -6,7 +6,7 @@ import { CapaComponent } from './web/capa/capa.component';
 export const routes: Routes = [
   {
     path:'',
-    component: MapaComponent
+    component: CapaComponent
   },
   {
     path:'mapa',
@@ -14,6 +14,6 @@ export const routes: Routes = [
   },
   {
     path:'capa',
-    component: CapaComponent
+    component: MapaComponent
   }
 ];
