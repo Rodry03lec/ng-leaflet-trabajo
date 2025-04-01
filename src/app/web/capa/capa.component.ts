@@ -12,6 +12,7 @@ import { PanelModule } from 'primeng/panel';
 import { SliderModule } from 'primeng/slider';
 import { DataViewModule } from 'primeng/dataview';
 import { ChartModule } from 'primeng/chart';
+import { DialogModule } from 'primeng/dialog';
 
 
 //importaciones de Leaftlet
@@ -41,7 +42,8 @@ import { elementosMenu, detalleAdicional }  from './../componentes/interfaces/ca
     PanelModule,
     SliderModule,
     DataViewModule,
-    ChartModule
+    ChartModule,
+    DialogModule
   ],
   templateUrl: './capa.component.html',
   styleUrls: ['./capa.component.scss'],
@@ -71,10 +73,14 @@ export class CapaComponent implements OnInit {
 
   valorColor!: number;
 
-
+  //para los graficos
   datosCard: any;
   optionesCard: any;
   platformId = inject(PLATFORM_ID);
+
+  //para el modal
+  visible:boolean = false;
+
   constructor(private cd: ChangeDetectorRef) {}
 
 
@@ -138,9 +144,6 @@ export class CapaComponent implements OnInit {
         console.log(resp);
         console.log(this.indice);
       });
-
-      this.verificarCapasYActualizar();
-      this.activarHerramientasDibujo();
 
       this.map.on((L as any).Draw.Event.CREATED, (e: any) => {
         let tipo = '';
@@ -216,9 +219,9 @@ export class CapaComponent implements OnInit {
 
   // Verificar si hay capas activas y actualizar herramientas de dibujo
   private verificarCapasYActualizar(): void {
-    if (Object.keys(this.capasGeoJSONalmacenadas).length > 0) {
+    if (this.capasGeoJSONalmacenadas && this.capasGeoJSONalmacenadas.length > 0) {
       this.activarHerramientasDibujo();
-      console.log("entrada aqui ");
+      console.log("activa herramientas de dibujo");
     } else {
       console.log('No hay capas activas, herramientas de dibujo desactivadas.');
       if (this.drawControl) {
@@ -233,11 +236,6 @@ export class CapaComponent implements OnInit {
     if (!this.panelVisible) {
       this.elementoSeleccionado = null;
     }
-  }
-
-  // Toggle Detail Expansion
-  toggleDetailExpansion(detalle: detalleAdicional) {
-    detalle.expanded = !detalle.expanded;
   }
 
   //Cambia el ítem activo y filtra los datos correspondientes.
@@ -257,9 +255,10 @@ export class CapaComponent implements OnInit {
     if (valor.geojsonLayer) {
       this.layerGroup.removeLayer(valor.geojsonLayer);
       this.capasGeoJSONalmacenadas = this.capasGeoJSONalmacenadas.filter(
-        (res: any) => res.nombre != nombre,
+        (res: any) => res.nombre!= nombre,
       );
     }
+    this.verificarCapasYActualizar();
   }
 
   // Cambia la opacidad de una capa específica.
@@ -314,6 +313,7 @@ export class CapaComponent implements OnInit {
         }
       }
     });
+    this.verificarCapasYActualizar();
   }
 
   //Añade una capa GeoJSON al mapa y la almacena en capasGeoJSONalmacenadas.
@@ -341,10 +341,11 @@ export class CapaComponent implements OnInit {
   agregarToolpipCapas(caracteristica: any, capa: any) {
     if (caracteristica.properties) {
       var tooltipContent = `
-          <div class="card" style="width: 18rem; text-align: justify;">
+          <div class="card shadow-lg" style="width: 18rem; background: #2A3064; color: #fff; text-align: justify; padding: 1rem;">
             <div class="card-body">
-              ${caracteristica.properties.popup}
-              hola comoe stas?
+                <p class="mb-0" style="font-size: 1rem; line-height: 1.5;">
+                    ${caracteristica.properties.popup}
+                </p>
             </div>
           </div>
         `;
@@ -363,40 +364,64 @@ export class CapaComponent implements OnInit {
     };
   }
 
-  //Añade marcadores agrupados al mapa.
+  // Método modificado
   agregaGeoJSONIcono(data: any, geojsonData: any) {
     const geojsonLayer = L.geoJSON(geojsonData, {
-      pointToLayer: (feature, latlng) => {
-        const style = this.styleCentrosPoblados(feature);
-        return L.circleMarker(latlng, style).bindTooltip(
-          `<div>${feature.properties.titulo}</div> `,
-          { direction: 'bottom', permanent: true },
-        );
-      },
+        pointToLayer: (feature, latlng) => {
+            // Crear un icono HTML personalizado con la imagen
+            const icon = L.divIcon({
+                html: `
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        background: url('/logos/icono_prueba.svg') center/cover;
+                        border: 2px solid red;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: bold;
+                        font-size: 15px;
+                    "></div>
+                `,
+                className: '', // Importante para eliminar estilos por defecto
+                iconSize: [20, 20] // Tamaño del icono
+            });
+
+            return L.marker(latlng, { icon: icon }).bindTooltip(
+                `<div>
+                    ${feature.properties.titulo}
+                </div>`,
+                { direction: 'bottom', permanent: true }
+            );
+        }
     });
+
     this.markers.addLayer(geojsonLayer);
     const valor = {
-      nombre: data.nombre_tabla,
-      ficha: data.ficha,
-      titulo: data.titulo,
-      subtitulo: data.subtitulo,
-      opacidad: data.opacidad,
-      geojsonLayer: this.markers,
+        nombre: data.nombre_tabla,
+        ficha: data.ficha,
+        titulo: data.titulo,
+        subtitulo: data.subtitulo,
+        opacidad: data.opacidad,
+        geojsonLayer: this.markers,
     };
     this.capasGeoJSONalmacenadas.push(valor);
     this.layerGroup.addLayer(this.markers).addTo(this.map);
   }
 
+  // Elimina o mantén styleCentrosPoblados si lo usas en otros lugares
   styleCentrosPoblados(feature: any) {
     return {
-      radius: 5,
-      color: 'red',
-      fillColor: 'red',
-      fillOpacity: 0.5,
+        radius: 5,
+        color: 'red',
+        fillColor: 'red',
+        fillOpacity: 0.5,
     };
   }
 
-
+  //para la parte de los graficos
   iniciarChart() {
     if (isPlatformBrowser(this.platformId)) {
         const documentStyle = getComputedStyle(document.documentElement);
@@ -458,6 +483,10 @@ export class CapaComponent implements OnInit {
         };
         this.cd.markForCheck()
     }
-}
+  }
 
+  //para mostrar el modal
+  mostrarModal(){
+    this.visible = true;
+  }
 }

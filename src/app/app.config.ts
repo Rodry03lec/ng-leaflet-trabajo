@@ -3,6 +3,8 @@ import { provideRouter } from '@angular/router';
 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import Aura from '@primeng/themes/aura';
+import Material from '@primeng/themes/material';
+import Lara from '@primeng/themes/lara';
 import { providePrimeNG } from 'primeng/config';
 import { provideHttpClient } from '@angular/common/http';
 

@@ -4,16 +4,22 @@ import { MapaPruebaComponent } from './web/mapa-prueba/mapa-prueba.component';
 import { CapaComponent } from './web/capa/capa.component';
 
 export const routes: Routes = [
+
   {
-    path:'',
-    component: CapaComponent
+    path: '',
+    children:[
+      {
+        path:'',
+        component: CapaComponent
+      },
+      {
+        path:'mapa',
+        component: MapaPruebaComponent
+      },
+      {
+        path:'capa',
+        component: MapaComponent
+      }
+    ]
   },
-  {
-    path:'mapa',
-    component: MapaPruebaComponent
-  },
-  {
-    path:'capa',
-    component: MapaComponent
-  }
 ];

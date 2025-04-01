@@ -19,20 +19,7 @@
 
     <!-- Logo principal con tamaños responsive -->
     <div class="relative">
-      <img
-        src="logos/image2vector.svg"
-        alt="Logo INE"
-        class="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24 lg:w-32 lg:h-32
-              bg-white/95 rounded-full p-2 sm:p-3
-              shadow-lg
-              backdrop-blur-lg
-              transition-all duration-700 ease-in-out
-              hover:shadow-xl
-              hover:ring-2 sm:hover:ring-4 hover:ring-blue-400/50
-              group-hover:scale-110
-              group-hover:rotate-[360deg]
-              group-hover:brightness-110
-              dark:bg-gray-900/90 dark:border dark:border-gray-700"
+      <img src="logos/logo-ine-bolivia.svg" alt="Logo INE" class="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-white/95 rounded-full p-2 sm:p-3 shadow-lg backdrop-blur-lg transition-all duration-700 ease-in-out hover:shadow-xl hover:ring-2 sm:hover:ring-4 hover:ring-blue-400/50 group-hover:scale-110 group-hover:rotate-[360deg] group-hover:brightness-110 dark:bg-gray-900/90 dark:border dark:border-gray-700"
       />
 
       <!-- Indicador de estado (más pequeño en móviles) -->
@@ -47,14 +34,11 @@
 
   <!-- Menú Flotante (visible en pantallas grandes, oculto en móviles) -->
   <nav class="fixed  top-20 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 flex space-x-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-2 md:block hidden">
-    <button *ngFor="let btn of ['Video', 'Mapas', 'Presentación']"
+    <button *ngFor="let btn of ['Video', 'Mapas', 'Presentación']" (click)="mostrarModal()"
       class="px-4 py-2 text-sm font-medium text-2xl hover:text-white hover:bg-[#2A3064] rounded-lg transition">
       {{ btn }}
     </button>
   </nav>
-
-
-
 
   <!-- Panel lateral (fuera del mapa para evitar ocultarlo) -->
   <div class="absolute right-0 top-0 h-full bg-white shadow-lg w-96 p-4 transition-transform duration-300
@@ -72,10 +56,7 @@
     <div class="card">
       <h2 class="text-lg font-bold text-center mb-2">Grafica</h2>
       <p-chart type="bar" [data]="datosCard" [options]="optionesCard" class="h-[96rem] w-32" />
-    </div>
-
-    <div>
-      <p-button icon="pi pi-times" severity="danger" />
+      <img src="logos/descargar-pdf.svg" alt="">
     </div>
 
 
@@ -87,9 +68,6 @@
       <i class="pi text-2xl" [ngClass]="panelVisible1 ? 'pi-times' : 'pi-bars'"></i>
     </button>
   </div>
-
-
-
 
   <!-- Toggle Panel Button -->
   <button (click)="alternarPanel()"
@@ -266,3 +244,10 @@
   </section>
 
 </div>
+
+
+<p-dialog class="bg-[#2A3064]" header="Mostrar Videos" [(visible)]="visible" [modal]="true" [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }" [style]="{ width: '50vw' }" [draggable]="false" [resizable]="false">
+  <div class="flex items-center gap-4 mb-8">
+    <iframe width="100%" height="315" src="https://www.youtube.com/embed/8A7-54UguKg?si=t9rk5IVT8MgSSmna" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  </div>
+</p-dialog>
