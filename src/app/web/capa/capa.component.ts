@@ -13,6 +13,10 @@ import { SliderModule } from 'primeng/slider';
 import { DataViewModule } from 'primeng/dataview';
 import { ChartModule } from 'primeng/chart';
 import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 
 
 //importaciones de Leaftlet
@@ -43,7 +47,11 @@ import { elementosMenu, detalleAdicional }  from './../componentes/interfaces/ca
     SliderModule,
     DataViewModule,
     ChartModule,
-    DialogModule
+    DialogModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    SelectModule
   ],
   templateUrl: './capa.component.html',
   styleUrls: ['./capa.component.scss'],
@@ -52,7 +60,7 @@ export class CapaComponent implements OnInit {
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
   map!: L.Map;
-  panelVisible = false;
+  panelVisible = true;
   elementoSeleccionado: elementosMenu | null = null;
   private drawControl!: L.Control | any;
   private drawnItems!: L.FeatureGroup;
@@ -84,19 +92,30 @@ export class CapaComponent implements OnInit {
   constructor(private cd: ChangeDetectorRef) {}
 
 
+  //para pruebas
+
+  countries: any[] = [];
+  selectedCountry: string | undefined;
+
+  //tematica
+  teamticas:any[] = [];
+  selectedIndicador: any = null;
+
+
+
   // Menu items with detailed descriptions
   menuElementos: elementosMenu[] = [
     {
-      nombreMenu: 'Información Estadística',
+      nombreMenu: 'Temática',
       icon: 'pi-database',
       sw: 1,
-      description:'Explora datos estadísticos detallados con análisis profundos y visualizaciones comprehensivas.',
+      description:'Explora las tematicas correspondientes.',
     },
     {
-      nombreMenu: 'Capas Geográficas',
+      nombreMenu: 'Departamentos de Bolivia y Municipios',
       icon: 'pi-list',
       sw: 2,
-      description: 'Gestiona y personaliza diferentes capas geográficas con herramientas avanzadas de visualización.',
+      description: 'Departamentos',
     },
     {
       nombreMenu: 'Capas Seleccionadas',
@@ -106,10 +125,63 @@ export class CapaComponent implements OnInit {
     }
   ];
 
+  //par ala parte de os indicadores
+  lista_tematica = [
+    { id:1, nombre:'POBLACIÓN',
+      indicador:[
+        { id: 1, nombre: 'Edad mediana' },
+        { id: 2, nombre: 'Tasa global de dependencia' },
+        { id: 3, nombre: 'Índice de envejecimiento' },
+        { id: 4, nombre: 'Índice de juventud' },
+        { id: 5, nombre: 'Índice de masculinidad' },
+        { id: 6, nombre: 'Población que reside en áreas urbanas' },
+        { id: 7, nombre: 'Población de 15 años o más que vive en unión' },
+      ]
+    },
+    { id:2, nombre:'FECUNDIDAD',
+      indicador:[
+        { id: 1, nombre: 'Tasa global de fecundidad' },
+        { id: 2, nombre: 'Edad media de la madre al primer nacimiento' },
+      ]
+    },
+    { id:3, nombre:'MIGRACIÓN' },
+    { id:4, nombre:'MORTALIDAD' },
+    { id:5, nombre:'AUTOIDENTIFICACIÓN' },
+    { id:6, nombre:'IDIOMAS' },
+    { id:7, nombre:'CIUDADANÍA' },
+    { id:8, nombre:'SALUD' },
+    { id:9, nombre:'DISCAPACIDAD' },
+    { id:10, nombre:'EDUCACIÓN' },
+    { id:11, nombre:'EMPLEO' },
+    { id:12, nombre:'VIVIENDA' },
+    { id:13, nombre:'POBREZA' }
+  ];
+
+  //para los departamentos
+  departamentos = [
+    { id: 1, nombre: 'La Paz', code: 'LP' },
+    { id: 2, nombre: 'Cochabamba', code: 'CBBA' },
+    { id: 3, nombre: 'Chuquisaca', code: 'CH' },
+    { id: 4, nombre: 'Santa Cruz', code: 'SCZ' },
+    { id: 5, nombre: 'Tarija', code: 'TJA' },
+    { id: 6, nombre: 'Potosí', code: 'PT' },
+    { id: 7, nombre: 'Oruro', code: 'OR' },
+    { id: 8, nombre: 'Beni', code: 'BE' },
+    { id: 9, nombre: 'Pando', code: 'PD' }
+  ];
+
+  // Copia inicial
+  filtro: string = '';
+  lista_tematicaFiltrada = this.lista_tematica;
+
+
   ngOnInit() {
     // Ensure map initialization after view is ready
     setTimeout(() => this.iniciarMapa(), 100);
     setTimeout(()=> this.iniciarChart(), 100);
+    this.elementoSeleccionado = this.menuElementos[0];
+    this.countries = this.departamentos;
+    this.lista_tematicaFiltrada = [...this.lista_tematica];
   }
 
 
@@ -217,6 +289,35 @@ export class CapaComponent implements OnInit {
     });
   }
 
+
+
+
+  //para seleccionar departamento
+  seleccionarDepartamento(id:any){
+    console.log(id);
+  }
+
+
+
+  filtrarIndicadores() {
+    const filtroLower = this.filtro.toLowerCase().trim();
+
+    this.lista_tematicaFiltrada = this.lista_tematica.map(tema => ({
+      ...tema,
+      indicador: tema.indicador
+        ? tema.indicador.filter(indicador => indicador.nombre.toLowerCase().includes(filtroLower))
+        : []
+    })).filter(tema => tema.indicador.length > 0 || tema.nombre.toLowerCase().includes(filtroLower));
+  }
+
+  selectIndicador(indicador: any) {
+    this.selectedIndicador = indicador;
+  }
+
+
+
+
+
   // Verificar si hay capas activas y actualizar herramientas de dibujo
   private verificarCapasYActualizar(): void {
     if (this.capasGeoJSONalmacenadas && this.capasGeoJSONalmacenadas.length > 0) {
@@ -243,7 +344,7 @@ export class CapaComponent implements OnInit {
     console.log(item);
     this.sw = item.icon;
     this.elementoSeleccionado = item;
-    this.indice = this.completo.filter((res: any) => res.sw == item.sw);
+    //this.indice = this.completo.filter((res: any) => res.sw == item.sw);
   }
 
   //Elimina una capa GeoJSON por su nombre.
