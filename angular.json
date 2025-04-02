@@ -19,7 +19,13 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": "dist/01front-ag",
-            "allowedCommonJsDependencies": ["pdfmake"],
+            "allowedCommonJsDependencies": [
+            "pdfmake",
+            "leaflet",
+            "leaflet-draw",
+            "leaflet.markercluster",
+            "lodash"
+            ],
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [

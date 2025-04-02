@@ -21,7 +21,10 @@ import { SelectModule } from 'primeng/select';
 
 //importaciones de Leaftlet
 import * as L from 'leaflet';
+import 'leaflet.markercluster';
 import 'leaflet-draw';
+import 'lodash';
+
 
 //importacion de servicios
 import { MapaService } from '../servicios/mapa.service';
@@ -172,7 +175,7 @@ export class CapaComponent implements OnInit {
 
   // Copia inicial
   filtro: string = '';
-  lista_tematicaFiltrada = this.lista_tematica;
+  lista_tematicaFiltrada:any []= [];
 
 
   ngOnInit() {
