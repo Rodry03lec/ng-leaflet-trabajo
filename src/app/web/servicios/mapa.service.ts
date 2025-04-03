@@ -16,6 +16,18 @@ export class MapaService {
   constructor() { }
 
 
+  listaDepartamentos(){
+    return this.http.get(`${this.urlBase}/mapa/listaDepartamennto`);
+  }
+
+  //para los departamentos
+  departamentos(id:any){
+    return this.http.post(`${this.urlBase}/mapa/departamento`,id);
+  }
+
+
+
+
   //para la parte de los indices
   indice() {
     return this.http.get(`${this.urlBase}/dashboard/indice`);
@@ -44,4 +56,6 @@ export class MapaService {
   capas(tabla: string) {
     return this.http.get(`${this.urlBase}/dashboard/capas/${tabla}`);
   }
+
+
 }
