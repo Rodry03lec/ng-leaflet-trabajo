@@ -21,6 +21,18 @@ import { environment } from '../../../environments/environment';
 // Interfaces
 import { elementosMenu }  from './../componentes/interfaces/capa.interface';
 
+
+
+interface Punto {
+  id: number;
+  nombre: string;
+  geojson: {
+    type: string;
+    coordinates: [number, number];
+  };
+}
+
+
 @Component({
   selector: 'app-capa',
   standalone: true,
@@ -69,15 +81,15 @@ export class CapaComponent implements OnInit {
   constructor(private cd: ChangeDetectorRef) {}
 
   //para pruebas
-
-  departamentos: any[] = [];
   selectedCountry: string | undefined;
 
   //tematica
   teamticas:any[] = [];
   selectedIndicador: any = null;
 
-
+  //para busqueda de departamentos y municipios
+  busquedaTexto: string = '';
+  busquedaOptenido: any[] = [];
 
   // Menu items with detailed descriptions
   menuElementos: elementosMenu[] = [
@@ -116,8 +128,8 @@ export class CapaComponent implements OnInit {
     },
     { id:2, nombre:'FECUNDIDAD',
       indicador:[
-        { id: 1, nombre: 'Tasa global de fecundidad' },
-        { id: 2, nombre: 'Edad media de la madre al primer nacimiento' },
+        { id: 8, nombre: 'Tasa global de fecundidad' },
+        { id: 9, nombre: 'Edad media de la madre al primer nacimiento' },
       ]
     },
     { id:3, nombre:'MIGRACIÓN' },
@@ -140,16 +152,17 @@ export class CapaComponent implements OnInit {
   //selecion de departamentos
   selectedDepartments: any[] = [];
 
+  private coloresDisponibles = ["blue", "green", "red", "orange", "purple", "cyan", "magenta", "brown", "teal"];
+
   ngOnInit() {
     // Ensure map initialization after view is ready
     setTimeout(() => this.iniciarMapa(), 100);
     setTimeout(()=> this.iniciarChart(), 100);
     this.elementoSeleccionado = this.menuElementos[0];
     this.lista_tematicaFiltrada = [...this.lista_tematica];
-    this.listarDepartamentos();
   }
 
-  // Para iniciar el mapa
+  //para iniciar el mapa
   iniciarMapa() {
     // Safely initialize Leaflet map
     if (this.mapContainer && this.mapContainer.nativeElement) {
@@ -161,20 +174,52 @@ export class CapaComponent implements OnInit {
         zoomControl: false,
       });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Capa estándar (OpenStreetMap)
+      const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
-        opacity: 0.8,
-      }).addTo(this.map);
+        opacity: 1,
+      });
+
+      // Capa de satélite (Esri)
+      const esriSatelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri',
+        opacity: 1,
+      });
+
+      // Capa de relieve de CartoDB Positron
+      const cartoDBReliefLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors, &copy; CartoDB',
+        opacity: 1,
+      });
+
+      // Capa de relieve (Esri World Terrain)
+      const esriWorldTerrainLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; Esri &copy; OpenStreetMap contributors',
+        opacity: 1,
+      });
+
+      // Agregar la capa predeterminada (OpenStreetMap)
+      osmLayer.addTo(this.map);
 
       // Inicializar el featureGroup para las figuras dibujadas
       this.drawnItems = new L.FeatureGroup();
       this.map.addLayer(this.drawnItems);
 
-      L.control
-        .zoom({
-          position: 'bottomright',
-        })
-        .addTo(this.map);
+      // Control de zoom
+      L.control.zoom({
+        position: 'bottomright',
+      }).addTo(this.map);
+
+      // Agregar un control de capas para que el usuario cambie entre mapas
+      const baseMaps = {
+        "Mapa estándar (OSM)": osmLayer,
+        "Satélite": esriSatelliteLayer,
+        "Carto": cartoDBReliefLayer,
+        "Esri": esriWorldTerrainLayer,
+      };
+
+      // Control de capas en la esquina inferior izquierda
+      L.control.layers(baseMaps, {}, { position: 'bottomright' }).addTo(this.map);
 
       // Configurar el listener de eventos para figuras creadas
       this.configurarEventosDrawCreated();
@@ -286,43 +331,6 @@ export class CapaComponent implements OnInit {
     this.map.addControl(this.drawControl);
   }
 
-  //para listar los departamentos
-  listarDepartamentos(){
-    this.servicioMapa.listaDepartamentos().subscribe(
-      (resp: any)=>{
-        this.departamentos = resp;
-        this.departamentos = [
-          { nombre: 'SELECCIONAR TODOS', value: 'all', id: 0 },
-          ...this.departamentos
-        ];
-      },
-      (error)=>{
-        console.error("Ocurrió un error:", error);
-      }
-    );
-  }
-
-  //para seleccionar departamento
-  seleccionarDepartamento(departamento: any) {
-    console.log(departamento.id);
-    this.servicioMapa.departamentos({ id: departamento.id }).subscribe(
-      (resp: any) => {
-        console.log("Respuesta del servidor:", resp);
-        for (let index = 0; index < resp.length; index++) {
-          this.dibujarGeometria(resp[index]);
-        }
-      },
-      (error) => {
-        console.error("Ocurrió un error:", error);
-      }
-    );
-  }
-
-  //para listar los municipios
-  listarMunicipios(idep:any){
-
-  }
-
   // Función principal para dibujar la geometría según el tipo
   private dibujarGeometria(datos: any) {
     if (!datos || !datos.geojson || !datos.geojson.coordinates) {
@@ -407,7 +415,10 @@ export class CapaComponent implements OnInit {
 
     const geoJsonFeature = {
       type: "Feature",
-      properties: { nombre: datos.nombre },
+      properties: {
+        nombre: datos.nombre,
+        id: datos.id
+      },
       geometry: {
         type: "MultiPolygon",
         coordinates: coordinates
@@ -419,28 +430,39 @@ export class CapaComponent implements OnInit {
 
   // Función común para agregar cualquier capa GeoJSON al mapa
   private agregarCapaGeoJson(geoJsonFeature: any) {
-    // Verificar si el nombre de la capa ya está en el arreglo
     const nombreCapa = geoJsonFeature.properties.nombre;
-    // Verificar si la capa ya está almacenada
-    if (this.capasGeoJSONalmacenadas.some(capa => capa.nombre === nombreCapa)) {
-      console.log(`La capa ${nombreCapa} ya está almacenada.`);
+    const capaId = geoJsonFeature.properties.id;
+
+
+    const yaExiste = this.capasGeoJSONalmacenadas.some(capa =>
+      capa.nombre === nombreCapa && capa.id === capaId
+    );
+
+    if (yaExiste) {
+      console.log(`La capa '${nombreCapa}' con ID '${capaId}' ya está almacenada.`);
       return;
     }
+
+    // Elegir un color basado en la cantidad de capas ya almacenadas (cíclico)
+    const colorIndex = this.capasGeoJSONalmacenadas.length % this.coloresDisponibles.length;
+    const color = this.coloresDisponibles[colorIndex];
+
     this.geoJsonLayer = L.geoJSON(geoJsonFeature, {
       style: {
         color: "#170401",
         weight: 2,
-        fillColor: "blue",
-        fillOpacity: 3,
-        opacity: 3
+        fillColor: color,
+        fillOpacity: 0.6,
+        opacity: 1
       }
     }).addTo(this.map);
-    // Almacenar la capa y su nombre
-    this.capasGeoJSONalmacenadas.push({ nombre: nombreCapa, geojsonLayer: this.geoJsonLayer, opacidad: 3 });
+
+    this.capasGeoJSONalmacenadas.push({ nombre: nombreCapa, id: capaId, geojsonLayer: this.geoJsonLayer, opacidad: 3 });
 
     this.map.fitBounds(this.geoJsonLayer.getBounds());
     this.verificarCapasYActualizar();
   }
+
 
   // Función para eliminar una capa por su nombre
   eliminarCapa(nombre: string) {
@@ -489,6 +511,7 @@ export class CapaComponent implements OnInit {
     });
   }
 
+  //para filtrar los indicadores
   filtrarIndicadores() {
     const filtroLower = this.filtro.toLowerCase().trim();
 
@@ -500,6 +523,7 @@ export class CapaComponent implements OnInit {
     })).filter(tema => tema.indicador.length > 0 || tema.nombre.toLowerCase().includes(filtroLower));
   }
 
+  //para la seleccionar indiciador
   selectIndicador(indicador: any) {
     this.selectedIndicador = indicador;
   }
@@ -585,4 +609,81 @@ export class CapaComponent implements OnInit {
   mostrarModal(){
     this.visible = true;
   }
+
+  buscarDepaMun(nombre: string) {
+    if (nombre.length >= 3) {
+      this.servicioMapa.busquedaDepMun({ nombre }).subscribe(
+        (resp: any) => {
+          console.log("Respuesta del servidor:", resp);
+          this.busquedaOptenido = resp;
+        },
+        (error) => {
+          console.error("Ocurrió un error:", error);
+        }
+      );
+    } else {
+      this.busquedaOptenido = [];
+    }
+  }
+
+  //para realizar el proceso de seleccion de municipio o departamento
+  seleccionarDepMunicipio(id: any, tipo: any) {
+    console.log(id + tipo);
+    this.servicioMapa.deparMunicipioVer(id, tipo).subscribe(
+      (resp: any) => {
+        console.log("Respuesta del servidor:", resp);
+        for (let index = 0; index < resp.length; index++) {
+          this.dibujarGeometria(resp[index]);
+        }
+      },
+      (error) => {
+        console.error("Ocurrió un error:", error);
+      }
+    );
+  }
+
+  //para la parte de las pruebas de los puntoss
+  puntosPrueba() {
+    this.servicioMapa.pruebaPuntosGet().subscribe(
+      (resp: any) => {
+        console.log("Respuesta del servidor:", resp);
+        this.dibujarPuntosAgrupados(resp, 'nombre', 1);
+      },
+      (error) => {
+        console.error("Ocurrió un error:", error);
+      }
+    );
+  }
+
+  // Para los puntos
+  dibujarPuntosAgrupados(datos: any, nombre: any, id: any) {
+    // Verificar si la capa ya está almacenada
+    const capaExistente = this.capasGeoJSONalmacenadas.find(capa => capa.id === id || capa.nombre === nombre);
+
+    if (capaExistente) {
+      console.log("La capa ya está almacenada:", capaExistente);
+      // Si la capa ya está almacenada, puedes evitar agregarla de nuevo
+      return;
+    }
+    // Crear un nuevo grupo de marcadores para cada llamada
+    const markers = L.markerClusterGroup();
+    // Iterar sobre los puntos y añadirlos al grupo de marcadores
+    (datos as Punto[]).forEach(punto => {
+      const [lng, lat] = punto.geojson.coordinates;
+      // Crear un marcador
+      const marker = L.marker([lat, lng]).bindPopup(`<strong>${punto.nombre}</strong>`); // Puedes agregar más información en el popup
+      // Añadir el marcador al grupo de marcadores
+      markers.addLayer(marker);
+    });
+    // Almacenar la capa con un nombre y un id
+    this.capasGeoJSONalmacenadas.push({
+      nombre: nombre,
+      id: id,
+      geojsonLayer: markers,  // Almacenamos el grupo de marcadores
+      opacidad: 0.8  // Puedes cambiar la opacidad aquí
+    });
+    // Añadir el grupo de marcadores al mapa
+    this.map.addLayer(markers);
+  }
+
 }

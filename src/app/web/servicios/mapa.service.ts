@@ -15,47 +15,19 @@ export class MapaService {
 
   constructor() { }
 
-
-  listaDepartamentos(){
-    return this.http.get(`${this.urlBase}/mapa/listaDepartamennto`);
+  //para busqueda general de departamentos y municipios
+  busquedaDepMun(nombre:any){
+    return this.http.post(`${this.urlBase}/mapa/buscarDepMun`, nombre);
   }
 
-  //para los departamentos
-  departamentos(id:any){
-    return this.http.post(`${this.urlBase}/mapa/departamento`,id);
+  //para ver los detalles de lo que envien
+  deparMunicipioVer(id: any, tipo: any) {
+    return this.http.post(`${this.urlBase}/mapa/departamentoMunicipioVer`, { id, tipo });
   }
 
-
-
-
-  //para la parte de los indices
-  indice() {
-    return this.http.get(`${this.urlBase}/dashboard/indice`);
+  //para la parte de los puntos prueba
+  pruebaPuntosGet(){
+    return this.http.get(`${this.urlBase}/mapa/pruebaPunto`);
   }
-  //para comparar
-  comparar(nombre: string, data: any) {
-
-    const datos = {
-      nombre: nombre,
-      data: data
-    }
-    console.log(datos);
-    return this.http.put(`${this.urlBase}/dashboard/comparar`,JSON.stringify(datos));
-  }
-
-  //para la ficha
-  ficha_censal_disperso(codigos: string) {
-    return this.http.get(`${this.urlBase}/dashboard/ficha_censal_disperso/${codigos}`);
-  }
-
-  buscar(id: number) {
-    return this.http.get(`${this.urlBase}/dashboard/buscar/${id}`);
-  }
-
-  //para las capas
-  capas(tabla: string) {
-    return this.http.get(`${this.urlBase}/dashboard/capas/${tabla}`);
-  }
-
 
 }

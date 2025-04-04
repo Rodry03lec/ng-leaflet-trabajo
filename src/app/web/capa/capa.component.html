@@ -84,7 +84,7 @@
 
 
     <!-- Content Section -->
-    <p-scrollpanel class="w-full md:w-96 h-[20vh] md:h-[50vh] bg-white rounded-lg shadow-lg h-50vh overflow-y-auto">
+    <p-scrollpanel class="w-full md:w-96 h-[30vh] md:h-[55vh] bg-white rounded-lg shadow-lg h-50vh overflow-y-auto">
       <main class="flex-grow p-4 max-w-[50vh]">
         <ng-container *ngIf="elementoSeleccionado; else noSelection">
           <!-- Header -->
@@ -96,9 +96,11 @@
               <h3 class="text-white text-xl">{{ elementoSeleccionado.nombreMenu }}</h3>
             </div>
           </header>
+          <p-button (click)="puntosPrueba()" >Prueba</p-button>
 
           <!-- Details Section with Scroll -->
-          <div class=" rounded-lg">
+          <div class="rounded-lg">
+            <!-- Conditional Section 1: For sw === 1 -->
             <div *ngIf="elementoSeleccionado.sw === 1" class="p-3 surface-card border-round shadow-2">
               <!-- Campo de búsqueda -->
               <div class="p-inputgroup mb-2">
@@ -107,10 +109,9 @@
                 </span>
               </div>
 
-              <!-- Acordeón con filtros (Usando nueva estructura de PrimeNG v18) -->
+              <!-- Acordeón con filtros -->
               <p-accordion [multiple]="false">
                 <p-accordion-panel *ngFor="let tema of lista_tematicaFiltrada" [value]="tema.nombre">
-
                   <!-- Encabezado del acordeón -->
                   <p-accordion-header>
                     <div class="flex align-items-center">
@@ -135,7 +136,6 @@
                       </ul>
                     </div>
                   </p-accordion-content>
-
                 </p-accordion-panel>
               </p-accordion>
 
@@ -143,72 +143,77 @@
               <p *ngIf="lista_tematicaFiltrada.length === 0" class="text-center text-muted mt-3">
                 No se encontraron resultados.
               </p>
-
             </div>
 
+            <!-- Conditional Section 2: For sw === 2 -->
             <div *ngIf="elementoSeleccionado.sw === 2">
-              <p-select
-                [options]="departamentos"
-                [(ngModel)]="selectedDepartments"
-                (ngModelChange)="seleccionarDepartamento($event)"
-                optionLabel="nombre"
-                [filter]="true"
-                filterBy="nombre"
-                [showClear]="true"
-                placeholder="SELECCIONE UN DEPARTAMENTO"
-                class="w-full"
-                panelStyleClass="shadow-lg border border-gray-200 rounded-lg mt-1"
-                [virtualScroll]="true"
-                [virtualScrollItemSize]="34"
-                appendTo="body"
-              >
-                <ng-template #selectedItem let-seleccionarOpcion>
-                  <div class="flex items-center gap-2 p-2">
-                    <i class="pi pi-map-marker text-blue-500 text-sm"></i>
-                    <span class="text-gray-700 text-sm">{{ seleccionarOpcion.nombre }}</span>
-                  </div>
-                </ng-template>
+              <div class="p-2">
+                <p-floatlabel variant="on">
+                  <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText id="Buscar" class="w-full" [(ngModel)]="busquedaTexto" (input)="buscarDepaMun(busquedaTexto)" autocomplete="off" />
+                    <label for="Buscar">Buscar por Departamento o Municipios</label>
+                  </p-iconfield>
+                </p-floatlabel>
 
-                <ng-template let-departamento #item>
-                  <div class="flex items-center gap-2 p-2 hover:bg-blue-50 rounded transition cursor-pointer">
-                    <i class="pi pi-map-marker text-blue-400 text-sm"></i>
-                    <span class="text-gray-700 hover:text-blue-600 text-sm">{{ departamento.nombre }}</span>
-                  </div>
-                </ng-template>
-              </p-select>
-
-            </div>
-
-            <div *ngIf="elementoSeleccionado.sw === 3">
-              @for (item of capasGeoJSONalmacenadas; track $index) {
-                <div class="col-span-12" class="col-span-12">
-                  <div class="flex flex-col sm:flex-row sm:items-center p-6 gap-4">
-                    <!-- Content Section -->
-                    <div class="flex flex-col md:flex-row justify-between md:items-center flex-1 gap-6">
-                      <div class="flex flex-row md:flex-col justify-between items-start gap-2">
-                        <div>
-                          <div class="text-lg font-medium text-surface-900 dark:text-surface-0 mt-2">{{ item.nombre }}</div>
-                        </div>
-                      </div>
-                      <div class="flex flex-col md:items-end gap-8">
-                        <div class="flex flex-row-reverse md:flex-row gap-2">
-                          <p-button icon="pi pi-trash" severity="danger" (click)="eliminarCapa(item.nombre)" />
-                        </div>
+                <div *ngIf="busquedaOptenido.length > 0 ; else sinResultados" class="py-2">
+                  <div class="w-full md:full border rounded p-2 max-h-[200px] overflow-y-auto">
+                    <div *ngFor="let item of busquedaOptenido">
+                      <div class="flex items-center gap-3 p-3 hover:bg-blue-50 rounded transition cursor-pointer" (click)="seleccionarDepMunicipio(item.id, item.tipo)">
+                        <i class="pi pi-map-marker text-blue-500 text-sm"></i>
+                        <span class="text-gray-700 hover:text-blue-600 text-sm">{{ item.nombre }}</span>
+                        <span class="ml-auto border-surface rounded text-muted-color text-xs p-1">
+                          {{ item.tipo }}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  <p-slider
-                    [(ngModel)]="item.opacidad"
-                    [min]="1"
-                    [max]="3"
-                    [step]="0.1"
-                    (onChange)="cambiarOpacidad(item.nombre, { value: item.opacidad })">
-                  </p-slider>
                 </div>
-              }
+              </div>
+
+              <ng-template #sinResultados>
+                <div class="text-center text-gray-500 text-sm py-2">
+                  No se encontraron resultados.
+                </div>
+              </ng-template>
             </div>
 
+            <!-- Conditional Section 3: For sw === 3 (Iterating Over Cards) -->
+            <div *ngIf="elementoSeleccionado.sw === 3">
+              <div *ngFor="let item of capasGeoJSONalmacenadas; track by $index" class="col-span-12">
+                <!-- Individual Card -->
+                <div class="bg-[#CCD8EA] shadow-lg rounded-lg p-3 flex flex-col gap-1 mb-1">
+                  <!-- Card Header Section -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div class="flex flex-row md:flex-col justify-between items-start gap-3">
+                      <div>
+                        <div class="text-lg font-medium text-gray-900 dark:text-gray-60 mt-2">{{ item.nombre }}</div>
+                      </div>
+                    </div>
+                    <!-- Delete button -->
+                    <div class="flex flex-col md:items-end gap-8">
+                      <div class="flex flex-row-reverse md:flex-row gap-2">
+                        <p-button icon="pi pi-trash" severity="danger" (click)="eliminarCapa(item.nombre)" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Opacity Slider -->
+                  <div class="mt-4">
+                    <p-slider
+                      [(ngModel)]="item.opacidad"
+                      [min]="1"
+                      [max]="3"
+                      [step]="0.1"
+                      (onChange)="cambiarOpacidad(item.nombre, { value: item.opacidad })"
+                      class="w-full"
+                    ></p-slider>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+
 
         </ng-container>
 

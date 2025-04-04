@@ -13,6 +13,8 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { PanelMenuModule } from 'primeng/panelmenu';
 
 
 const PRIME_NG_MODULES = [
@@ -29,7 +31,9 @@ const PRIME_NG_MODULES = [
   IconFieldModule,
   InputIconModule,
   InputTextModule,
-  SelectModule
+  SelectModule,
+  FloatLabelModule,
+  PanelMenuModule
 ];
 
 @NgModule({
