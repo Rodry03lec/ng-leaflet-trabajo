@@ -1,23 +1,9 @@
-import { Component, OnInit, ViewChild, ElementRef, inject, PLATFORM_ID, ChangeDetectorRef, effect } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-//Las importaciones de prime
-import { ButtonModule } from 'primeng/button';
-import { ScrollPanelModule } from 'primeng/scrollpanel';
-import { TooltipModule } from 'primeng/tooltip';
-import { AccordionModule } from 'primeng/accordion';
-import { CardModule } from 'primeng/card';
-import { PanelModule } from 'primeng/panel';
-import { SliderModule } from 'primeng/slider';
-import { DataViewModule } from 'primeng/dataview';
-import { ChartModule } from 'primeng/chart';
-import { DialogModule } from 'primeng/dialog';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-
+//aqui importamos todo lo de prime
+import {  PrimeNgImports } from './../componentes/imports/imports.web'
 
 //importaciones de Leaftlet
 import * as L from 'leaflet';
@@ -41,20 +27,8 @@ import { elementosMenu }  from './../componentes/interfaces/capa.interface';
   imports: [
     CommonModule,
     FormsModule,
-    ButtonModule,
-    ScrollPanelModule,
-    TooltipModule,
-    AccordionModule,
-    CardModule,
-    PanelModule,
-    SliderModule,
-    DataViewModule,
-    ChartModule,
-    DialogModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule,
-    SelectModule
+    //esto es de prime ng
+    PrimeNgImports
   ],
   templateUrl: './capa.component.html',
   styleUrls: ['./capa.component.scss'],
